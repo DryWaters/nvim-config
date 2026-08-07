@@ -234,7 +234,7 @@ require('lazy').setup({
   { -- Fuzzy Finder (files, lsp, etc)
     'nvim-telescope/telescope.nvim',
     event = 'VimEnter',
-    branch = '0.1.x',
+    branch = 'master',
     dependencies = {
       'nvim-lua/plenary.nvim',
       -- If using with WSL use drywaters branch so it doesn't disable delta
@@ -825,29 +825,37 @@ require('lazy').setup({
   },
   { -- Highlight, edit, and navigate code
     'nvim-treesitter/nvim-treesitter',
+    branch = 'main',
+    lazy = false,
     build = ':TSUpdate',
     opts = {
-      ensure_installed = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'vim', 'vimdoc' },
-      -- Autoinstall languages that are not installed
-      auto_install = true,
-      highlight = {
-        enable = true,
-        -- Some languages depend on vim's regex highlighting system (such as Ruby) for indent rules.
-        --  If you are experiencing weird indenting issues, add the language to
-        --  the list of additional_vim_regex_highlighting and disabled languages for indent.
-        additional_vim_regex_highlighting = { 'ruby' },
-      },
-      indent = { enable = true, disable = { 'ruby' } },
+      ensure_installed = { 'bash', 'c', 'diff', 'go', 'html', 'lua', 'luadoc', 'markdown', 'rust', 'vim', 'vimdoc' },
     },
     config = function(_, opts)
       -- [[ Configure Treesitter ]] See `:help nvim-treesitter`
-
-      -- Prefer git instead of curl in order to improve connectivity in some environments
-      require('nvim-treesitter.install').prefer_git = true
-      ---@diagnostic disable-next-line: missing-fields
-      require('nvim-treesitter.configs').setup(opts)
+      -- The main branch uses Neovim's built-in highlighting API and no longer
+      -- provides the old `nvim-treesitter.configs` module.
+      local treesitter = require 'nvim-treesitter'
+      treesitter.setup { install_dir = vim.fn.stdpath 'data' .. '/site' }
+      treesitter.install(opts.ensure_installed):wait(300000)
 
       vim.treesitter.language.register('html', 'gohtmltmpl')
+
+      vim.api.nvim_create_autocmd('FileType', {
+        group = vim.api.nvim_create_augroup('kickstart-treesitter', { clear = true }),
+        callback = function(args)
+          -- Not every filetype has a parser, so failure here is expected.
+          local started = pcall(vim.treesitter.start, args.buf)
+
+          if started and args.match ~= 'ruby' then
+            local language = vim.treesitter.language.get_lang(args.match)
+            local query_ok, indent_query = pcall(vim.treesitter.query.get, language or '', 'indents')
+            if query_ok and indent_query then
+              vim.bo[args.buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+            end
+          end
+        end,
+      })
       -- There are additional nvim-treesitter modules that you can use to interact
       -- with nvim-treesitter. You should go explore a few and see what interests you:
       --

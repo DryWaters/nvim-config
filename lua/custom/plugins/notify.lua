@@ -7,7 +7,7 @@ return {
     render = 'default',
   },
   config = function(_, opts)
-    local notify = require('notify')
+    local notify = require 'notify'
     notify.setup(opts)
     vim.notify = notify
   end,

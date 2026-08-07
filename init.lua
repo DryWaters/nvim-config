@@ -848,7 +848,11 @@ require('lazy').setup({
           local started = pcall(vim.treesitter.start, args.buf)
 
           if started and args.match ~= 'ruby' then
-            vim.bo[args.buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+            local language = vim.treesitter.language.get_lang(args.match)
+            local query_ok, indent_query = pcall(vim.treesitter.query.get, language or '', 'indents')
+            if query_ok and indent_query then
+              vim.bo[args.buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
+            end
           end
         end,
       })

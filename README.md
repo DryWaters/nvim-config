@@ -8,6 +8,7 @@ Personal Neovim configuration based on
 - Neovim 0.12 or newer
 - [Tree-sitter CLI](https://github.com/tree-sitter/tree-sitter) 0.26.1 or newer
 - Git, Make, a C compiler, and [ripgrep](https://github.com/BurntSushi/ripgrep)
+- `curl` and `tar` for nvim-treesitter parser installation
 - A [Nerd Font](https://www.nerdfonts.com/font-downloads)
 - [LazyGit](https://github.com/jesseduffield/lazygit) for the LazyGit integration
 - [Delve](https://github.com/go-delve/delve) for Go debugging

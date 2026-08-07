@@ -829,7 +829,7 @@ require('lazy').setup({
     lazy = false,
     build = ':TSUpdate',
     opts = {
-      ensure_installed = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'rust', 'vim', 'vimdoc' },
+      ensure_installed = { 'bash', 'c', 'diff', 'go', 'html', 'lua', 'luadoc', 'markdown', 'rust', 'vim', 'vimdoc' },
     },
     config = function(_, opts)
       -- [[ Configure Treesitter ]] See `:help nvim-treesitter`
@@ -837,7 +837,7 @@ require('lazy').setup({
       -- provides the old `nvim-treesitter.configs` module.
       local treesitter = require 'nvim-treesitter'
       treesitter.setup { install_dir = vim.fn.stdpath 'data' .. '/site' }
-      treesitter.install(opts.ensure_installed)
+      treesitter.install(opts.ensure_installed):wait(300000)
 
       vim.treesitter.language.register('html', 'gohtmltmpl')
 
@@ -845,9 +845,9 @@ require('lazy').setup({
         group = vim.api.nvim_create_augroup('kickstart-treesitter', { clear = true }),
         callback = function(args)
           -- Not every filetype has a parser, so failure here is expected.
-          pcall(vim.treesitter.start, args.buf)
+          local started = pcall(vim.treesitter.start, args.buf)
 
-          if args.match ~= 'ruby' then
+          if started and args.match ~= 'ruby' then
             vim.bo[args.buf].indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()"
           end
         end,

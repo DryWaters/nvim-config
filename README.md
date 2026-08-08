@@ -55,3 +55,10 @@ lazy.nvim plugins, Treesitter parsers, Mason tools, caches, logs, undo history,
 session data, and other runtime state live under Neovim's standard data, state,
 and cache directories. `lazy-lock.json` is intentionally ignored, so plugin locks
 and generated/runtime files must not be committed to this repository.
+
+## Startup troubleshooting
+
+If Neovim starts from a directory that has been deleted, the configuration
+silently recovers to a valid `$HOME`, then falls back to Neovim's config
+directory. A valid working directory is left unchanged. Startup stops with a
+clear error if neither fallback directory is available.

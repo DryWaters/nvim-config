@@ -1,3 +1,41 @@
+-- Recover before plugins load if Neovim was launched from a directory that no longer exists.
+local function is_directory(path)
+  if type(path) ~= 'string' or path == '' then
+    return false
+  end
+
+  local stat_ok, stat = pcall(vim.uv.fs_stat, path)
+  return stat_ok and stat ~= nil and stat.type == 'directory'
+end
+
+local function current_directory()
+  local cwd_ok, cwd = pcall(vim.uv.cwd)
+  return cwd_ok and cwd or nil
+end
+
+if not is_directory(current_directory()) then
+  local candidates = { vim.env.HOME }
+  local config_ok, config_dir = pcall(vim.fn.stdpath, 'config')
+  if config_ok then
+    candidates[#candidates + 1] = config_dir
+  end
+
+  local recovered = false
+  for _, candidate in ipairs(candidates) do
+    if is_directory(candidate) then
+      local change_ok = pcall(vim.api.nvim_set_current_dir, candidate)
+      if change_ok and is_directory(current_directory()) then
+        recovered = true
+        break
+      end
+    end
+  end
+
+  if not recovered then
+    error 'Unable to recover Neovim working directory: HOME and config directory are unavailable'
+  end
+end
+
 -- Set <space> as the leader key
 -- See `:help mapleader`
 --  NOTE: Must happen before plugins are loaded (otherwise wrong leader will be used)
